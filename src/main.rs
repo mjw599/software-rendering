@@ -70,7 +70,7 @@ fn main() {
         let half_height = (HEIGHT/2) as f64;
         let half_width = (WIDTH/2) as f64;
 
-        for i in 0..model.facesSize() { 
+        for i in 0..model.faces.len() { 
             let face = &model.faces[i]; 
             for j in 0..face.len() {
                 let v0 = &model.vertices[face[j] as usize]; 
