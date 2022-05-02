@@ -3,10 +3,18 @@ use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 
+use crate::model::Model;
+
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
 
+#[macro_use]
+mod vector;
+mod model;
+
 fn main() {
+    let model = Model::parse(&String::from("data/models/african_head.obj")).unwrap();
+
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
@@ -57,6 +65,24 @@ fn main() {
         // Clear framebuffer
         framebuffer.fill(0);
 
+        let white = Color::RGBA(255, 255, 255, 255);
+
+        let half_height = (HEIGHT/2) as f64;
+        let half_width = (WIDTH/2) as f64;
+
+        for i in 0..model.facesSize() { 
+            let face = &model.faces[i]; 
+            for j in 0..face.len() {
+                let v0 = &model.vertices[face[j] as usize]; 
+                let v1 = &model.vertices[face[(j+1)%3] as usize]; 
+                let x0 = (v0.x+1.0)*half_width; 
+                let y0 = (v0.y+1.0)*half_height; 
+                let x1 = (v1.x+1.0)*half_width; 
+                let y1 = (v1.y+1.0)*half_height;
+                draw_line(x0 as i32, y0 as i32, x1 as i32, y1 as i32, &mut framebuffer, white); 
+            } 
+        }
+
         draw_line(
             horizontal_x,
             13,
@@ -64,14 +90,6 @@ fn main() {
             80,
             &mut framebuffer,
             Color::RGBA(255, 0, 0, 255),
-        );
-        draw_line(
-            80,
-            40,
-            13,
-            20,
-            &mut framebuffer,
-            Color::RGBA(0, 255, 0, 255),
         );
         horizontal_x = (horizontal_x + 1) % WIDTH as i32;
 
@@ -119,10 +137,12 @@ fn draw_line(
     if steep {
         for x in x0..=x1 {
             let index = (((WIDTH as i32 * x) + y) * 4) as usize;
-            canvas[index] = color.b;
-            canvas[index + 1] = color.g;
-            canvas[index + 2] = color.r;
-            canvas[index + 3] = color.a;
+            if index < canvas.len() {
+                canvas[index] = color.b;
+                canvas[index + 1] = color.g;
+                canvas[index + 2] = color.r;
+                canvas[index + 3] = color.a;
+            }
             error += derror;
             if error > dx {
                 y += yincr;
@@ -132,10 +152,12 @@ fn draw_line(
     } else {
         for x in x0..=x1 {
             let index = (((WIDTH as i32 * y) + x) * 4) as usize;
-            canvas[index] = color.b;
-            canvas[index + 1] = color.g;
-            canvas[index + 2] = color.r;
-            canvas[index + 3] = color.a;
+            if index < canvas.len() {
+                canvas[index] = color.b;
+                canvas[index + 1] = color.g;
+                canvas[index + 2] = color.r;
+                canvas[index + 3] = color.a;
+            }
             error += derror;
             if error > dx {
                 y += yincr;
