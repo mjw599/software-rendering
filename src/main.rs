@@ -4,6 +4,8 @@ use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 
 use crate::model::Model;
+use crate::vector::Vec2i;
+use crate::vector::Vec3f;
 
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
@@ -11,6 +13,7 @@ const HEIGHT: u32 = 600;
 #[macro_use]
 mod vector;
 mod model;
+mod triangle_renderer;
 
 fn main() {
     let model = Model::parse(&String::from("data/models/african_head.obj")).unwrap();
@@ -70,17 +73,38 @@ fn main() {
         let half_height = (HEIGHT/2) as f64;
         let half_width = (WIDTH/2) as f64;
 
+        // for i in 0..model.faces.len() { 
+        //     let face = &model.faces[i]; 
+        //     for j in 0..face.len() {
+        //         let v0 = &model.vertices[face[j] as usize]; 
+        //         let v1 = &model.vertices[face[(j+1)%3] as usize]; 
+        //         let x0 = (v0.x+1.0)*half_width; 
+        //         let y0 = (v0.y+1.0)*half_height; 
+        //         let x1 = (v1.x+1.0)*half_width; 
+        //         let y1 = (v1.y+1.0)*half_height;
+        //         draw_line(x0 as i32, y0 as i32, x1 as i32, y1 as i32, &mut framebuffer, white); 
+        //     } 
+        // }
+
+        let light_dir = Vec3f { x:0.0, y:0.0, z:-1.0 };
+
         for i in 0..model.faces.len() { 
-            let face = &model.faces[i]; 
-            for j in 0..face.len() {
-                let v0 = &model.vertices[face[j] as usize]; 
-                let v1 = &model.vertices[face[(j+1)%3] as usize]; 
-                let x0 = (v0.x+1.0)*half_width; 
-                let y0 = (v0.y+1.0)*half_height; 
-                let x1 = (v1.x+1.0)*half_width; 
-                let y1 = (v1.y+1.0)*half_height;
-                draw_line(x0 as i32, y0 as i32, x1 as i32, y1 as i32, &mut framebuffer, white); 
-            } 
+            let face = &model.faces[i];
+            let v1 = &model.vertices[face[0] as usize];
+            let v2 = &model.vertices[face[1] as usize];
+            let v3 = &model.vertices[face[2] as usize];
+            let screen1 = Vec2i{ x:((v1.x + 1.0) * half_width) as i64, y:((v1.y+1.0) * half_height) as i64};
+            let screen2 = Vec2i{ x:((v2.x + 1.0) * half_width) as i64, y:((v2.y+1.0) * half_height) as i64};
+            let screen3 = Vec2i{ x:((v3.x + 1.0) * half_width) as i64, y:((v3.y+1.0) * half_height) as i64};
+
+            let mut n = (v3-v1).cross(&(v2-v1));
+            n = n.normalize();
+            let intensity = n.dot(&light_dir);
+
+            if intensity > 0.0 {
+                let tri_color = Color::RGBA((intensity * 255.0) as u8, (intensity * 255.0) as u8, (intensity * 255.0) as u8, 255 );
+                triangle_renderer::render_triangle(&screen1, &screen2, &screen3, &mut framebuffer, WIDTH as i64, HEIGHT as i64, tri_color);
+            }
         }
 
         draw_line(

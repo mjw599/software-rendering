@@ -7,9 +7,14 @@ pub struct Vec3f {
 }
 
 pub struct Vec3i {
-    x:i64,
-    y:i64,
-    z:i64
+    pub x:i64,
+    pub y:i64,
+    pub z:i64
+}
+
+pub struct Vec2i {
+    pub x:i64,
+    pub y:i64
 }
 
 impl Vec3f {
@@ -25,6 +30,11 @@ impl Vec3f {
 
     pub fn dot(&self, other:&Vec3f) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z
+    }
+
+    pub fn normalize(&self) -> Vec3f {
+        let size = (self.x * self.x + self.y * self.y + self.z * self.z).sqrt();
+        Vec3f{ x: self.x / size, y: self.y / size, z: self.z / size }
     }
 }
 
@@ -44,6 +54,18 @@ impl Sub for Vec3f {
     type Output = Vec3f;
 
     fn sub(self, other:Vec3f) -> Self::Output {
+        Vec3f {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z
+        }
+    }
+}
+
+impl Sub for &Vec3f {
+    type Output = Vec3f;
+
+    fn sub(self, other:&Vec3f) -> Self::Output {
         Vec3f {
             x: self.x - other.x,
             y: self.y - other.y,
@@ -112,6 +134,45 @@ impl Mul<i64> for Vec3i {
             x: self.x * other,
             y: self.y * other,
             z: self.z * other
+        }
+    }
+}
+
+impl Vec2i {
+    pub fn zero() -> Vec2i {
+        Vec2i { x:0, y:0 }
+    }
+}
+
+impl Add for Vec2i {
+    type Output = Vec2i;
+
+    fn add(self, other:Vec2i) -> Self::Output {
+        Vec2i {
+            x: self.x + other.x,
+            y: self.y + other.y
+        }
+    }
+}
+
+impl Sub for Vec2i {
+    type Output = Vec2i;
+
+    fn sub(self, other:Vec2i) -> Self::Output {
+        Vec2i {
+            x: self.x - other.x,
+            y: self.y - other.y
+        }
+    }
+}
+
+impl Mul<i64> for Vec2i {
+    type Output = Vec2i;
+
+    fn mul(self, other:i64) -> Self::Output {
+        Vec2i {
+            x: self.x * other,
+            y: self.y * other
         }
     }
 }
