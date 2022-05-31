@@ -17,6 +17,11 @@ pub struct Vec2i {
     pub y:i64
 }
 
+pub struct Vec2f {
+    pub x:f64,
+    pub y:f64
+}
+
 impl Vec3f {
     pub fn zero() -> Vec3f {
         Vec3f { x:0.0, y:0.0, z:0.0 }
@@ -171,6 +176,45 @@ impl Mul<i64> for Vec2i {
 
     fn mul(self, other:i64) -> Self::Output {
         Vec2i {
+            x: self.x * other,
+            y: self.y * other
+        }
+    }
+}
+
+impl Vec2f {
+    pub fn zero() -> Vec2f {
+        Vec2f { x:0.0, y:0.0 }
+    }
+}
+
+impl Add for Vec2f {
+    type Output = Vec2f;
+
+    fn add(self, other:Vec2f) -> Self::Output {
+        Vec2f {
+            x: self.x + other.x,
+            y: self.y + other.y
+        }
+    }
+}
+
+impl Sub for Vec2f {
+    type Output = Vec2f;
+
+    fn sub(self, other:Vec2f) -> Self::Output {
+        Vec2f {
+            x: self.x - other.x,
+            y: self.y - other.y
+        }
+    }
+}
+
+impl Mul<f64> for Vec2f {
+    type Output = Vec2f;
+
+    fn mul(self, other:f64) -> Self::Output {
+        Vec2f {
             x: self.x * other,
             y: self.y * other
         }
