@@ -77,9 +77,9 @@ fn main() {
 
         for i in 0..model.faces.len() { 
             let face = &model.faces[i];
-            let v1 = &model.vertices[face[0] as usize];
-            let v2 = &model.vertices[face[1] as usize];
-            let v3 = &model.vertices[face[2] as usize];
+            let v1 = &model.vertices[face[0].vertex_index as usize];
+            let v2 = &model.vertices[face[1].vertex_index as usize];
+            let v3 = &model.vertices[face[2].vertex_index as usize];
             let screen1 = Vec3f{ x:((v1.x + 1.0) * half_width) + 0.5, y:((v1.y+1.0) * half_height) + 0.5, z:v1.z};
             let screen2 = Vec3f{ x:((v2.x + 1.0) * half_width) + 0.5, y:((v2.y+1.0) * half_height) + 0.5, z:v2.z};
             let screen3 = Vec3f{ x:((v3.x + 1.0) * half_width) + 0.5, y:((v3.y+1.0) * half_height) + 0.5, z:v3.z};
