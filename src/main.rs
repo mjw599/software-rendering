@@ -14,7 +14,7 @@ mod model;
 mod triangle_renderer;
 
 fn main() {
-    let model = Model::parse(&String::from("data/models/african_head.obj")).unwrap();
+    let model = Model::parse(&String::from("data/models/african_head.obj"), &String::from("data/models/african_head_diffuse.tga")).unwrap();
 
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();

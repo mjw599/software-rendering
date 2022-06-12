@@ -1,12 +1,16 @@
+use std::collections::HashMap;
 use std::io;
 use std::fs;
+use image::DynamicImage;
+
 use crate::vector::Vec3f;
 
 pub struct Model {
     pub vertices: Vec<Vec3f>,
     pub texture_coords: Vec<Vec3f>,
     pub normals: Vec<Vec3f>,
-    pub faces: Vec<Vec<ModelVertex>>
+    pub faces: Vec<Vec<ModelVertex>>,
+    pub textures: HashMap<String, DynamicImage>
 }
 
 pub struct ModelVertex {
@@ -21,11 +25,12 @@ impl Model {
             vertices: Vec::<Vec3f>::new(),
             texture_coords: Vec::<Vec3f>::new(),
             normals: Vec::<Vec3f>::new(),
-            faces: Vec::<Vec::<ModelVertex>>::new()
+            faces: Vec::<Vec::<ModelVertex>>::new(),
+            textures: HashMap::new() 
         }
     }
 
-    pub fn parse(filename: &String) -> Result<Model, io::Error> {
+    pub fn parse(filename: &String, diffuse_texture: &String) -> Result<Model, io::Error> {
         let content = match fs::read_to_string(filename) {
             Ok(content) => content,
             Err(e) => return Err(e)
@@ -82,6 +87,9 @@ impl Model {
                 ]);
             }
         }
+
+        let texture = image::open(diffuse_texture).unwrap();
+        model.textures.insert("diffuse".to_string(), texture);
 
         Ok(model)
     }
