@@ -1,37 +1,40 @@
+use image::{DynamicImage, GenericImageView};
+
 use crate::vector::*;
 
-pub fn render_triangle( v1:&Vec3f, v2:&Vec3f, v3:&Vec3f, canvas: &mut Box<[u32]>, canvas_width: i64, canvas_height: i64,
-    zbuffer: &mut Box<[f64]>, color: u32 ) {
-    let mut bboxmin = Vec2f { x:f64::MAX, y:f64::MAX };
-    let mut bboxmax = Vec2f{ x:f64::MIN, y:f64::MIN };
-    let clamp = Vec2i { x:canvas_width - 1, y:canvas_height - 1 };
+pub struct VertexData<'a> {
+    pub vertex: &'a Vec3f,
+    pub texture: &'a Vec3f
+}
 
-    bboxmin.x = 0.0_f64.max(bboxmin.x.min(v1.x));
-    bboxmin.x = 0.0_f64.max(bboxmin.x.min(v2.x));
-    bboxmin.x = 0.0_f64.max(bboxmin.x.min(v3.x));
+pub fn render_triangle( v1:&VertexData, v2:&VertexData, v3:&VertexData, canvas: &mut Box<[u32]>, canvas_width: i64, canvas_height: i64,
+    zbuffer: &mut Box<[f64]>, intensity: f64, diffuse_texture: &DynamicImage ) {
+    let bboxminx = v1.vertex.x.min( v2.vertex.x ).min( v3.vertex.x ).max( 0.0 );
+    let bboxminy = v1.vertex.y.min( v2.vertex.y ).min( v3.vertex.y ).max( 0.0 );
+    let bboxmaxx = v1.vertex.x.max( v2.vertex.x ).max( v3.vertex.x ).min( (canvas_width - 1) as f64 );
+    let bboxmaxy = v1.vertex.y.max( v2.vertex.y ).max( v3.vertex.y ).min( (canvas_height - 1) as f64 );
 
-    bboxmin.y = 0.0_f64.max(bboxmin.y.min(v1.y));
-    bboxmin.y = 0.0_f64.max(bboxmin.y.min(v2.y));
-    bboxmin.y = 0.0_f64.max(bboxmin.y.min(v3.y));
+    let texture_width = diffuse_texture.width() as f64;
+    let texture_height = diffuse_texture.height() as f64;
 
-    bboxmax.x = (clamp.x as f64).min(bboxmax.x.max(v1.x));
-    bboxmax.x = (clamp.x as f64).min(bboxmax.x.max(v2.x));
-    bboxmax.x = (clamp.x as f64).min(bboxmax.x.max(v3.x));
-
-    bboxmax.y = (clamp.y as f64).min(bboxmax.y.max(v1.y));
-    bboxmax.y = (clamp.y as f64).min(bboxmax.y.max(v2.y));
-    bboxmax.y = (clamp.y as f64).min(bboxmax.y.max(v3.y));
-
-    for x in (bboxmin.x as i64)..=(bboxmax.x as i64) {
-        for y in (bboxmin.y as i64)..=(bboxmax.y as i64) {
-            let barycentric_screen = barycentric( v1, v2, v3, x, y );
+    for y in (bboxminy as i64)..=(bboxmaxy as i64) {
+        for x in (bboxminx as i64)..=(bboxmaxx as i64) {
+            let barycentric_screen = barycentric( v1.vertex, v2.vertex, v3.vertex, x, y );
             if barycentric_screen.x < 0.0 || barycentric_screen.y < 0.0 || barycentric_screen.z < 0.0 {
                 continue;
             }
-            let z = (v1.z * barycentric_screen.x) + (v2.z * barycentric_screen.y) + (v3.z * barycentric_screen.z);
+            let z = (v1.vertex.z * barycentric_screen.x) + (v2.vertex.z * barycentric_screen.y) + (v3.vertex.z * barycentric_screen.z);
             let pixel_index = ((canvas_width * y) + x) as usize;
             if zbuffer[pixel_index] < z {
                 zbuffer[pixel_index] = z;
+
+                let u = (v1.texture.x * barycentric_screen.x) + (v2.texture.x * barycentric_screen.y) + (v3.texture.x * barycentric_screen.z);
+                let v = 1.0 - ((v1.texture.y * barycentric_screen.x) + (v2.texture.y * barycentric_screen.y) + (v3.texture.y * barycentric_screen.z));
+
+                let pixel_color = diffuse_texture.get_pixel((u * texture_width) as u32, (v * texture_height) as u32);
+
+                let color = 0xFF000000 | (pixel_color[0] as u32) << 16 | (pixel_color[1] as u32) << 8 | (pixel_color[2] as u32);
+
                 canvas[pixel_index] = color;
             }
         }

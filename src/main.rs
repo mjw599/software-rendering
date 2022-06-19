@@ -4,6 +4,7 @@ use sdl2::rect::Rect;
 
 use crate::model::Model;
 use crate::vector::Vec3f;
+use crate::triangle_renderer::VertexData;
 
 const WIDTH: u32 = 320;
 const HEIGHT: u32 = 240;
@@ -84,14 +85,20 @@ fn main() {
             let screen2 = Vec3f{ x:((v2.x + 1.0) * half_width) + 0.5, y:((v2.y+1.0) * half_height) + 0.5, z:v2.z};
             let screen3 = Vec3f{ x:((v3.x + 1.0) * half_width) + 0.5, y:((v3.y+1.0) * half_height) + 0.5, z:v3.z};
 
+            let v1uv = &model.texture_coords[face[0].texture_index as usize];
+            let v2uv = &model.texture_coords[face[1].texture_index as usize];
+            let v3uv = &model.texture_coords[face[2].texture_index as usize];
+
+            let vertex1 = VertexData { vertex: &screen1, texture: v1uv };
+            let vertex2 = VertexData { vertex: &screen2, texture: v2uv };
+            let vertex3 = VertexData { vertex: &screen3, texture: v3uv };
+
             let mut n = (v3-v1).cross(&(v2-v1));
             n = n.normalize();
             let intensity = n.dot(&light_dir);
 
             if intensity > 0.0 {
-                let gray = (intensity * 255.0) as u32 & 0xFF;
-                let tri_color = 0xFF000000 | gray << 16 | gray << 8 | gray;
-                triangle_renderer::render_triangle(&screen1, &screen2, &screen3, &mut framebuffer, WIDTH as i64, HEIGHT as i64, &mut zbuffer, tri_color);
+                triangle_renderer::render_triangle(&vertex1, &vertex2, &vertex3, &mut framebuffer, WIDTH as i64, HEIGHT as i64, &mut zbuffer, intensity, model.textures.get("diffuse").unwrap());
             }
         }
 
