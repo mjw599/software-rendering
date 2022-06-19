@@ -33,12 +33,17 @@ pub fn render_triangle( v1:&VertexData, v2:&VertexData, v3:&VertexData, canvas: 
 
                 let pixel_color = diffuse_texture.get_pixel((u * texture_width) as u32, (v * texture_height) as u32);
 
-                let color = 0xFF000000 | (pixel_color[0] as u32) << 16 | (pixel_color[1] as u32) << 8 | (pixel_color[2] as u32);
+                let color = 0xFF000000 | get_color(pixel_color[0], intensity) << 16 | get_color(pixel_color[1], intensity) << 8 | get_color(pixel_color[2], intensity);
 
                 canvas[pixel_index] = color;
             }
         }
     }
+}
+
+#[inline(always)]
+fn get_color( color:u8, intensity:f64 ) -> u32 {
+    ((color as f64) * intensity) as u32
 }
 
 fn barycentric( v1:&Vec3f, v2:&Vec3f, v3:&Vec3f, x:i64, y:i64 ) -> Vec3f {
