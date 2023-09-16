@@ -1,3 +1,5 @@
+use std::num::NonZeroU32;
+
 use crate::model::Model;
 use crate::vector::Vec3f;
 use crate::triangle_renderer::VertexData;
@@ -6,7 +8,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder, dpi::PhysicalSize,
 };
-use softbuffer::GraphicsContext;
+use softbuffer::{Context, Buffer};
 
 const WIDTH: u32 = 320;
 const HEIGHT: u32 = 240;
@@ -21,11 +23,11 @@ fn main() {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().with_inner_size(PhysicalSize::new(WIDTH, HEIGHT)).build(&event_loop).unwrap();
 
-    let mut context = unsafe { GraphicsContext::new(&window, &window) }.unwrap();
+    let context = unsafe { Context::new(&window) }.unwrap();
+    let mut surface = unsafe { softbuffer::Surface::new(&context, &window) }.unwrap();
 
     let model = Model::parse(&String::from("data/models/african_head.obj"), &String::from("data/models/african_head_diffuse.tga")).unwrap();
 
-    let mut framebuffer = vec![0u32; (WIDTH * HEIGHT) as usize].into_boxed_slice();
     let mut zbuffer = vec![0.0; (WIDTH * HEIGHT) as usize].into_boxed_slice();
     let mut horizontal_x = 0;
     let half_height = (HEIGHT/2) as f64;
@@ -41,6 +43,13 @@ fn main() {
 
         match event {
             Event::MainEventsCleared => {
+                surface
+                    .resize(
+                        NonZeroU32::new(WIDTH).unwrap(),
+                        NonZeroU32::new(HEIGHT).unwrap(),
+                    )
+                    .unwrap();
+                let mut framebuffer = surface.buffer_mut().unwrap();
                 // Clear framebuffer
                 framebuffer.fill(0);
                 // Clear zbuffer
@@ -82,7 +91,7 @@ fn main() {
                 );
                 horizontal_x = (horizontal_x + 1) % WIDTH as i32;
 
-                context.set_buffer(&framebuffer, WIDTH as u16, HEIGHT as u16);
+                framebuffer.present().unwrap();
             }
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
@@ -100,7 +109,7 @@ fn draw_line(
     mut y0: i32,
     mut x1: i32,
     mut y1: i32,
-    canvas: &mut Box<[u32]>,
+    canvas: &mut Buffer<'_>,
     color: u32,
 ) {
     let mut steep = false;

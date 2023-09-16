@@ -1,4 +1,5 @@
 use image::{DynamicImage, GenericImageView};
+use softbuffer::Buffer;
 
 use crate::vector::*;
 
@@ -7,7 +8,7 @@ pub struct VertexData<'a> {
     pub texture: &'a Vec3f
 }
 
-pub fn render_triangle( v1:&VertexData, v2:&VertexData, v3:&VertexData, canvas: &mut Box<[u32]>, canvas_width: i64, canvas_height: i64,
+pub fn render_triangle( v1:&VertexData, v2:&VertexData, v3:&VertexData, canvas: &mut Buffer<'_>, canvas_width: i64, canvas_height: i64,
     zbuffer: &mut Box<[f64]>, intensity: f64, diffuse_texture: &DynamicImage ) {
     let bboxminx = v1.vertex.x.min( v2.vertex.x ).min( v3.vertex.x ).max( 0.0 );
     let bboxminy = v1.vertex.y.min( v2.vertex.y ).min( v3.vertex.y ).max( 0.0 );
